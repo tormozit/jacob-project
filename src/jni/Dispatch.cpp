@@ -267,14 +267,18 @@ extern "C"
     }
   }
 
+  // FIX: Accept UTF-16 (jchar*) directly from JNI GetStringChars.
+  // The old signature used const char* fed from GetStringUTFChars, then A2W().
+  // A2W() expands to MultiByteToWideChar(CP_ACP,...) which treats the bytes as
+  // ANSI (e.g. CP1251 on Russian Windows), but JNI returns Modified UTF-8 —
+  // so Cyrillic bytes (e.g. 0xD0 0x9F for П) were decoded as two ANSI chars,
+  // producing garbage Unicode. GetIDsOfNames then returned DISP_E_UNKNOWNNAME.
+  // Since jchar == wchar_t == OLECHAR on Windows, no conversion is needed at all.
   static HRESULT
-  name2ID(IDispatch *pIDispatch, const char *prop, DISPID *dispid, long lcid)
+  name2ID(IDispatch *pIDispatch, const jchar *prop, DISPID *dispid, long lcid)
   {
-    HRESULT hresult;
-    USES_CONVERSION;
-    LPOLESTR propOle = A2W(prop);
-    hresult = pIDispatch->GetIDsOfNames(IID_NULL, (LPOLESTR *)&propOle, 1, lcid, dispid);
-    return hresult;
+    LPOLESTR propOle = (LPOLESTR)prop;
+    return pIDispatch->GetIDsOfNames(IID_NULL, (LPOLESTR *)&propOle, 1, lcid, dispid);
   }
 
   JNIEXPORT jintArray JNICALL Java_com_jacob_com_Dispatch_getIDsOfNames(JNIEnv *env, jclass clazz, jobject disp, jint lcid, jobjectArray names)
@@ -289,18 +293,23 @@ extern "C"
     DISPID *dispid = (DISPID *)CoTaskMemAlloc(l * sizeof(DISPID));
     for (i = 0; i < l; i++)
     {
-      USES_CONVERSION;
       jstring s = (jstring)env->GetObjectArrayElement(names, i);
-      // if we used env->GetStringChars() would that let us drop the conversion?
-      const char *nm = env->GetStringUTFChars(s, NULL);
-      LPOLESTR nmos = A2W(nm);
-      env->ReleaseStringUTFChars(s, nm);
+      // FIX: use GetStringChars (UTF-16) and copy to a heap-allocated OLECHAR
+      // buffer owned by lps[i] (freed explicitly below in both paths).
+      // Old A2W(GetStringUTFChars()) treated Modified UTF-8 as CP_ACP (ANSI),
+      // corrupting non-ASCII names (Cyrillic etc.) passed to GetIDsOfNames.
+      jsize sLen = env->GetStringLength(s);
+      const jchar *nm = env->GetStringChars(s, NULL);
+      LPOLESTR nmos = (LPOLESTR)CoTaskMemAlloc((sLen + 1) * sizeof(OLECHAR));
+      wcsncpy_s(nmos, sLen + 1, (LPCWSTR)nm, sLen);
+      env->ReleaseStringChars(s, nm);
       lps[i] = nmos;
       env->DeleteLocalRef(s);
     }
     HRESULT hr = pIDispatch->GetIDsOfNames(IID_NULL, lps, l, lcid, dispid);
     if (FAILED(hr))
     {
+      for (i = 0; i < l; i++) CoTaskMemFree(lps[i]); // FIX: free heap-allocated strings
       CoTaskMemFree(lps);
       CoTaskMemFree(dispid);
       char buf[1024];
@@ -320,6 +329,7 @@ extern "C"
     jintArray iarr = env->NewIntArray(l);
     // SF 1511033 -- the 2nd parameter should be 0 and not i!
     env->SetIntArrayRegion(iarr, 0, l, dispid);
+    for (i = 0; i < l; i++) CoTaskMemFree(lps[i]); // FIX: free heap-allocated strings
     CoTaskMemFree(lps);
     CoTaskMemFree(dispid);
     return iarr;
@@ -446,13 +456,21 @@ extern "C"
     int dispID = dispid;
     if (name != NULL)
     {
-      const char *nm = env->GetStringUTFChars(name, NULL);
+      // FIX: use GetStringChars (UTF-16). jchar* casts directly to LPOLESTR
+      // with no encoding conversion, so non-ASCII names (Cyrillic etc.) reach
+      // GetIDsOfNames intact. Old GetStringUTFChars + A2W(CP_ACP) mangled them.
+      // Also fixes a pre-existing use-after-free: the old code called
+      // ReleaseStringUTFChars(nm) and then read nm again in the error sprintf.
+      const jchar *nm = env->GetStringChars(name, NULL);
       HRESULT hr = name2ID(pIDispatch, nm, (long *)&dispID, lcid);
-      env->ReleaseStringUTFChars(name, nm);
+      env->ReleaseStringChars(name, nm);
       if (FAILED(hr))
       {
+        // UTF-8 is fine here — it's only for the human-readable error message.
+        const char *nmUtf8 = env->GetStringUTFChars(name, NULL);
         char buf[1024];
-        sprintf_s(buf, 1024, "Can't map name to dispid: %s", nm);
+        sprintf_s(buf, 1024, "Can't map name to dispid: %s", nmUtf8);
+        env->ReleaseStringUTFChars(name, nmUtf8);
         ThrowComFail(env, buf, -1);
         return NULL;
       }

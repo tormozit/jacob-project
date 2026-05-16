@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{EF917099-2E3A-41BA-A257-511EAAC6FCA9}</ProjectGuid>
+    <RootNamespace>jacob</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <!-- Укажите путь к JDK здесь, либо задайте переменную окружения JAVA_HOME -->
+    <JavaHome Condition="'$(JAVA_HOME)'!=''">$(JAVA_HOME)</JavaHome>
+    <JavaHome Condition="'$(JAVA_HOME)'==''">C:\Program Files\1C\1CE\components\axiom-jdk-full-17.0.16+12-x86_64</JavaHome>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>..\..\release\x64\</OutDir>
+    <IntDir>..\..\release\x64\obj\Debug\</IntDir>
+    <TargetName>jacob-1.21-x64</TargetName>
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>..\..\release\x64\</OutDir>
+    <IntDir>..\..\release\x64\obj\Release\</IntDir>
+    <TargetName>jacob-1.21-x64</TargetName>
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(JavaHome)\include\win32;$(JavaHome)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;JACOB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(JavaHome)\include\win32;$(JavaHome)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;JACOB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\jni\ComThread.h" />
+    <ClInclude Include="..\..\src\jni\Dispatch.h" />
+    <ClInclude Include="..\..\src\jni\DispatchEvents.h" />
+    <ClInclude Include="..\..\src\jni\DispatchProxy.h" />
+    <ClInclude Include="..\..\src\jni\EnumVariant.h" />
+    <ClInclude Include="..\..\src\jni\EventProxy.h" />
+    <ClInclude Include="..\..\src\jni\SafeArray.h" />
+    <ClInclude Include="..\..\src\jni\STA.h" />
+    <ClInclude Include="..\..\src\jni\StdAfx.h" />
+    <ClInclude Include="..\..\src\jni\util.h" />
+    <ClInclude Include="..\..\src\jni\Variant.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\jni\ComThread.cpp" />
+    <ClCompile Include="..\..\src\jni\Dispatch.cpp" />
+    <ClCompile Include="..\..\src\jni\DispatchEvents.cpp" />
+    <ClCompile Include="..\..\src\jni\DispatchProxy.cpp" />
+    <ClCompile Include="..\..\src\jni\EnumVariant.cpp" />
+    <ClCompile Include="..\..\src\jni\EventProxy.cpp" />
+    <ClCompile Include="..\..\src\jni\SafeArray.cpp" />
+    <ClCompile Include="..\..\src\jni\STA.cpp" />
+    <ClCompile Include="..\..\src\jni\util.cpp" />
+    <ClCompile Include="..\..\src\jni\Variant.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
